@@ -27,12 +27,6 @@ export class User {
 
   @Prop({ default: '' })
   selfcode: string;
-
-  @Prop({ default: -1 })
-  descending: number;
-
-  @Prop({ default: 0 })
-  gain: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

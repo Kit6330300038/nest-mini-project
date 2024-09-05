@@ -17,19 +17,13 @@ export class UserService {
   async create(CreateUserDto: CreateUserDto): Promise<User> {
     const newUser = new this.userModel(CreateUserDto);
     if (CreateUserDto.usecode.length > 0) {
-      var parent = await this.findParent(CreateUserDto.usecode);
-      await this.addGain(parent, newUser);
-      newUser.descending = parent.descending + 1;
+      //var parent = await this.findParent(CreateUserDto.usecode);
     }
     return await newUser.save();
   }
-  async findParent(code: string): Promise<UserDocument> {
-    return await this.userModel.findOne({ selfcode: code }).exec();
-  }
-  async addGain(parentdata: UserDocument, newuser: UserDocument) {
-    parentdata.gain += await this.getLot(newuser);
-    parentdata.save();
-  }
+  // async findParent(code: string): Promise<UserDocument> {
+  //   return await this.userModel.findOne({ selfcode: code }).exec();
+  // }
 
   // เตรียมไว้สำหรับหา user
   async findByUsername(user: string): Promise<UserDocument> {
@@ -77,12 +71,40 @@ export class UserService {
     );
   }
 
+  // commission money
   async getCommissionMoney(user: string): Promise<number> {
-    const descendgain = [5, 3, 2, 1];
     let userdata = await this.userModel.findOne({ username: user }).exec();
-    if (userdata.descending < descendgain.length - 1) {
-      return userdata.gain * descendgain[userdata.descending + 1];
+    if (userdata.selfcode.length > 0) {
+      return await this.addCommissionbyChild(
+        0,
+        await this.findChild(userdata.selfcode),
+      );
     }
     return 0;
+  }
+
+  async addCommissionbyChild(
+    Level: number,
+    child: UserDocument[],
+  ): Promise<number> {
+    const descendgain = [5, 3, 2, 1, 0];
+    let money = 0;
+    let lot = 0;
+    for (const element of child) {
+      // sum lot from all child
+      lot += await this.getLot(element);
+      if (element.selfcode.length > 0) {
+        // have child have code (maybe have child)
+        money += await this.addCommissionbyChild(
+          Level + 1,
+          await this.findChild(element.selfcode),
+        );
+      }
+    }
+    return money + lot * descendgain[Level < 5 ? Level : 4];
+  }
+
+  async findChild(code: string): Promise<UserDocument[]> {
+    return await this.userModel.find({ usecode: code }).exec();
   }
 }
