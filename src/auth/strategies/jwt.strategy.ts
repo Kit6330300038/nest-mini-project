@@ -12,8 +12,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     if (!key) {
       throw new Error('JWT_SECRET is not defined');
     }
-    console.log('JWT Secret:', key); // Debug output
-
+    //console.log('JWT Secret:', key); // Debug output
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
         (request: Request) => {

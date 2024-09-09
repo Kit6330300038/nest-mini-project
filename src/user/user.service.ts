@@ -12,6 +12,7 @@ export class UserService {
   constructor(
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
   ) {} // Use UserDocument type
+  private readonly descendgain: number[] = [5, 3, 2, 1];
 
   // create user data
   async create(CreateUserDto: CreateUserDto): Promise<User> {
@@ -87,9 +88,12 @@ export class UserService {
     Level: number,
     child: UserDocument[],
   ): Promise<number> {
-    const descendgain = [5, 3, 2, 1, 0];
+    //const descendgain = [5, 3, 2, 1];
     let money = 0;
     let lot = 0;
+    if (this.descendgain.length <= Level) {
+      return 0;
+    }
     for (const element of child) {
       // sum lot from all child
       lot += await this.getLot(element);
@@ -101,7 +105,7 @@ export class UserService {
         );
       }
     }
-    return money + lot * descendgain[Level < 5 ? Level : 4];
+    return money + lot * this.descendgain[Level];
   }
 
   async findChild(code: string): Promise<UserDocument[]> {
